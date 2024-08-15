@@ -51,7 +51,7 @@ schedule.every().day.at("09:00:00", "Asia/Taipei").do(check_latest_golfstore_inf
 schedule.every().day.at("12:00:00", "Asia/Singapore").do(check_latest_golfstore_info)
 schedule.every().day.at("15:00:00", "Asia/Singapore").do(check_latest_golfstore_info)
 schedule.every().day.at("18:00:00", "Asia/Singapore").do(check_latest_golfstore_info)
-schedule.every().day.at("23:31:00", "Asia/Singapore").do(check_latest_golfstore_info)
+schedule.every().day.at("21:00:00", "Asia/Singapore").do(check_latest_golfstore_info)
 
 while True:
     schedule.run_pending()
