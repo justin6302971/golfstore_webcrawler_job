@@ -31,7 +31,7 @@ pip freeze > requirements.txt
 # install by requirements.txt
 pip install -r requirements.txt
 
-pyinstaller app.py --name=golf_reserved_timespan --output=dist
+pyinstaller --onefile app.py --name=golf_reserved_timespan
 
 ```
 
