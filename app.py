@@ -10,27 +10,35 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 def check_latest_golfstore_info():
     now = datetime.now()
+    now_at_hour_level = now.replace(minute=0, second=0, microsecond=0)
 
     today6am = now.replace(hour=6, minute=0, second=0, microsecond=0)
-    tomorrow0am = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-    if today6am <= now and now <= tomorrow0am:
-        formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-        print(f"start at: {formatted_now}--------")
-        browser = webdriver.Chrome()
+    
+    tomorrow0am = (now + timedelta(days=1)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    try: 
+        if today6am <= now_at_hour_level and now_at_hour_level <= tomorrow0am:
+            formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
+            print(f"start at: {formatted_now}--------")
+            browser = webdriver.Chrome()
 
-        golf_store_urls = [ZHUBEI_GOLF_STORE_URL, ZHUBEI_HSR_GOLF_STORE_URL]
+            golf_store_urls = [ZHUBEI_GOLF_STORE_URL, ZHUBEI_HSR_GOLF_STORE_URL]
 
-        for golf_store_url in golf_store_urls:
-            print(f"\n--------")
-            browser.get(golf_store_url)
-            wait = WebDriverWait(browser, timeout=5)
-            revealed = browser.find_element(By.ID, "app")
-            wait.until(lambda d: revealed.is_displayed())
-            get_golf_data(browser)
-            print(f"--------\n")
+            for golf_store_url in golf_store_urls:
+                print(f"\n--------")
+                browser.get(golf_store_url)
+                wait = WebDriverWait(browser, timeout=20)
+                revealed = browser.find_element(By.ID, "app")
+                wait.until(lambda d: revealed.is_displayed())
+                get_golf_data(browser)
+                print(f"--------\n")
 
-        browser.quit()
-        print(f"end--------\n")
+            browser.quit()
+            print(f"end--------\n")
+    except Exception as e:
+        pass
+        
 
 
 def get_golf_data(browser):
@@ -62,11 +70,10 @@ def get_timespans(calendar, reserved_day):
 
 formatted_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 print(f"start web crawler job at {formatted_now}\n")
-# schedule.every(5).seconds.do(check_latest_golfstore_info)
 
 check_latest_golfstore_info()
 
-schedule.every().hour.do(check_latest_golfstore_info)
+schedule.every().hours.at("00:00").do(check_latest_golfstore_info)
 
 
 while True:
