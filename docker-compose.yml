@@ -1,0 +1,33 @@
+# canonical configuration
+version: "3.7"
+
+services:
+    golfstore-job:
+        build:
+            context: ./
+            dockerfile: ./Dockerfile
+        image: golfstore-webcrawler-job:${ENV_TYPE}
+        container_name: golfstore-webcrawler-job-${ENV_TYPE}
+        networks:
+            - golfstore-nw
+        depends_on: 
+            - selenium-chrome
+            - postgresqldb
+    selenium-chrome:
+        image: selenium/standalone-chrome:127.0
+        platform: linux/amd64
+        container_name: selenium-chrome
+        networks:
+            - golfstore-nw
+    postgresqldb:
+        container_name: postgredb_${ENV_TYPE}
+        image: postgres:12
+        networks:
+            - golfstore-nw
+networks:
+    golfstore-nw:
+        name: golfstore-nw
+
+
+        
+  

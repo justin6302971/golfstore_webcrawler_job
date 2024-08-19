@@ -1,0 +1,41 @@
+# dev configuration (use docker-compose up will use docker-compose.yml and docker-comspoe.override.yml both)
+# os: mac
+version: "3.7"
+
+services:
+    golfstore-job:
+        # env_file: .docker.env
+        restart: always
+        # volumes:
+        #     - golfstore-webcrawler-v:/golfstore_webcrawler_job
+
+    selenium-chrome:
+            ports:
+                - "4444:4444"
+                # - "7901:7900"
+            volumes:
+            -  selenium-chrome-v:/dev/shm
+            environment:
+            - SE_EVENT_BUS_HOST=selenium-hub
+            - SE_NODE_MAX_SESSIONS=${SE_NODE_MAX_SESSIONS}
+            - SE_NODE_OVERRIDE_MAX_SESSIONS=${SE_NODE_OVERRIDE_MAX_SESSIONS}
+            # hostname: selenium-chrome
+            privileged: true
+            shm_size: 2g
+
+    postgresqldb:
+        environment:
+            POSTGRES_DB: ${POSTGRESQL_DATABASE}
+            POSTGRES_USER: ${POSTGRESQL_USER}
+            POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
+        ports:
+            - '9908:5432'
+        volumes:
+            - localpostgredb-v:/var/lib/postgresql/data
+volumes:
+    golfstore-webcrawler-v:
+    localpostgredb-v:
+    selenium-chrome-v:
+
+
+
