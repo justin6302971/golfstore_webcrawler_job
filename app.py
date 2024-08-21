@@ -8,8 +8,15 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
+from golfstoreDb import GolfStoreDb, GolfStoreInfo
+
 URL = "http://selenium-chrome:4444/wd/hub"
 
+# URL = "http://127.0.0.1:4444/wd/hub"
+
+
+
+db_session = GolfStoreDb()
 
 def check_latest_golfstore_info():
 
@@ -30,8 +37,10 @@ def check_latest_golfstore_info():
 
             golf_store_urls = [ZHUBEI_GOLF_STORE_URL,
                                ZHUBEI_HSR_GOLF_STORE_URL]
+            result = []
 
             for golf_store_url in golf_store_urls:
+                golf_store = {}
                 print(f"\n--------")
                 time.sleep(15)
 
@@ -49,7 +58,7 @@ def check_latest_golfstore_info():
                     command_executor=URL,
                     options=options
                 )
-               
+
                 browser.implicitly_wait(5)  # seconds
 
                 browser.get(golf_store_url)
@@ -57,10 +66,24 @@ def check_latest_golfstore_info():
                 revealed = browser.find_element(By.ID, "app")
                 wait.until(lambda d: revealed.is_displayed())
 
-                get_golf_data(browser)
-                print(f"--------\n")
+                golf_store_data = get_golf_data(browser)
+                golf_store["data"] = golf_store_data
+                golf_store["url"] = golf_store_url
 
+                result.append(golf_store)
+                print(f"--------\n")
             browser.quit()
+
+            # insert result to db
+            print(result)
+            
+            db = next(db_session.get_db())
+            entities=[]
+            for item in result:
+                 golf_store_entity = GolfStoreInfo(url=item['url'], data=item['data'])
+                 entities.append(golf_store_entity)
+            db.add_all(entities)
+            db.commit()
             print(f"end--------\n")
     except Exception as e:
         print(e)
@@ -68,17 +91,24 @@ def check_latest_golfstore_info():
 
 
 def get_golf_data(browser):
+
     print(f"store name: {browser.title}")
+
+    golfstore = {"store_name": browser.title, "reserved_dates": []}
 
     calendar = browser.find_element(By.CLASS_NAME, "calendar-detail")
 
     reserved_days = browser.find_elements(By.CLASS_NAME, "show-bar")
 
     for reserved_day in reserved_days:
-        get_timespans(calendar, reserved_day)
+        reserved_date = get_timespans(calendar, reserved_day)
+        golfstore["reserved_dates"].append(reserved_date)
+
+    return golfstore
 
 
 def get_timespans(calendar, reserved_day):
+
     try:
         reserved_day.click()
     except Exception as e:
@@ -88,10 +118,14 @@ def get_timespans(calendar, reserved_day):
     reserved_header = calendar.find_element(By.CLASS_NAME, "block")
     print(f"\n{calender_header.text}:{reserved_header.text}")
 
+    reserved_date = {"date": calender_header.text, "timespan": []}
+
     reserved_timespans = calendar.find_elements(By.CLASS_NAME, "truncate")
     for reserved_timespan in reserved_timespans:
-
+        reserved_date["timespan"].append(reserved_timespan.text)
         print(f"{reserved_timespan.text}")
+
+    return reserved_date
 
 
 formatted_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -99,7 +133,8 @@ print(f"start web crawler job at {formatted_now}\n")
 
 check_latest_golfstore_info()
 
-schedule.every().hours.at("00:00").do(check_latest_golfstore_info)
+# schedule.every().hours.at("20:00").do(check_latest_golfstore_info)
+# schedule.every().hours.at("50:00").do(check_latest_golfstore_info)
 
 
 while True:
